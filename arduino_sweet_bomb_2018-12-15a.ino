@@ -1,31 +1,40 @@
-/* Sweep
- by BARRAGAN <http://barraganstudio.com>
- This example code is in the public domain.
+#include <Wire.h> // for LCD LiquidCrystal_I2C library
+#include <LiquidCrystal_I2C.h>
+#include <SPI.h>  // for NRF24 radio library RF24
+#include "RF24.h"
 
- modified 8 Nov 2013
- by Scott Fitzgerald
- http://www.arduino.cc/en/Tutorial/Sweep
-*/
+LiquidCrystal_I2C lcd(0x27,2, 1, 0, 4,5,6,7,3,POSITIVE);   // Set the LCD I2C address
 
-#include <Servo.h>
+#define LEDPIN 13
 
-Servo myservo;  // create servo object to control a servo
-// twelve servo objects can be created on most boards
+/* Hardware configuration: Set up nRF24L01 radio on SPI bus plus pins */
+RF24 radio(9,10);
+byte addresses[][6] = {"1Node","2Node"};
 
-int pos = 0;    // variable to store the servo position
+void setup()
+{
+  pinMode(LEDPIN,OUTPUT);
+  digitalWrite(LEDPIN, LOW);
+  Serial.begin(9600);
 
-void setup() {
-  myservo.attach(8);  // attaches the servo pin to the servo object
+  lcd.begin(16,2);               // initialize the lcd 
+  lcd.home ();                   // go home
+  lcd.print("sweet bomb");       
+
+  radio.begin();
+  radio.setPALevel(RF24_PA_LOW);
+  radio.openWritingPipe(addresses[1]);
+  radio.openReadingPipe(1,addresses[0]);
+  radio.startListening();
 }
 
-void loop() {
-  for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
-    // in steps of 1 degree
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(150);                       // waits 15ms for the servo to reach the position
-  }
-  for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(150);                       // waits 15ms for the servo to reach the position
+void loop()
+{
+lcd.setCursor (0, 1 );        
+lcd.print("message3");    
+if (radio.available())
+  {
+  lcd.setCursor (0, 1 );        
+  lcd.print("Radio Available");    
   }
 }
